@@ -15,7 +15,8 @@ Original file is located at
 
 # Model dependent imports
 import torch
-
+import trimesh
+from scipy.spatial import cKDTree
 from shap_e.diffusion.sample import sample_latents
 from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
 from shap_e.models.download import load_model, load_config
@@ -60,6 +61,62 @@ size = int(conf_parser["shap-e"]["size"])  # Size of the created models
 cameras = create_pan_cameras(size, device) # Useful to output gifs and objects files
 render_mode = conf_parser["shap-e"]["render_mode"] # Render Mode, stf is the default one, we are using NeRF
 guidance_scale = float(conf_parser["shap-e"]["guidance_scale"])
+
+def simplify_mesh(mesh, target_faces):
+    factor = target_faces/len(mesh.faces)
+    simplified_mesh = mesh.simplify_quadratic_decimation(int(len(mesh.faces)*factor))
+    return simplified_mesh
+
+def parse_vertex(vertex):
+    x = round(float(vertex[1]), 3)
+    y = round(float(vertex[2]), 3)
+    z = round(float(vertex[3]), 3)
+    return (x,y,z)
+
+def parse_face(face):
+    return tuple(int(i) for i in face[1:])
+
+def get_vertex_list(vertex_list):
+    return [(i+1, value) for i, (_, value) in enumerate(vertex_list.items())]
+
+def get_index(index_list, index):
+    for (key, values) in index_list:
+        if index in values: return key
+    return np.inf
+
+def obj_cleaning(filename:str)-> str:
+    vertex_list = dict()
+    to_ret = ""
+    face_list = []
+    index = 1
+    with open(filename, "r") as f:
+        
+        while line:=f.readline():
+            row = line.strip().split(" ")
+            if row[0] == "v":
+                vertex = parse_vertex(row)
+                if vertex in vertex_list.keys():
+                    vertex_list[vertex].append(index)
+                else:
+                    vertex_list[vertex] = [index]
+                index+=1
+            else:
+                face_list.append(parse_face(row))
+    face_set = set()
+    ver_index_list = get_vertex_list(vertex_list)
+    for j in face_list:
+        x_new = get_index(ver_index_list, j[0])
+        y_new = get_index(ver_index_list, j[1])
+        z_new = get_index(ver_index_list, j[2])
+        if not (x_new == y_new or y_new == z_new or x_new == z_new):
+            face_set.add((x_new, y_new, z_new))
+
+    for i in vertex_list.keys():
+            to_ret += (f"v {i[0]} {i[1]} {i[2]}\n")
+    for j in face_set:
+            to_ret += (f"f {j[0]} {j[1]} {j[2]}\n")
+
+    return to_ret
 
 def cache_purge():
     """
@@ -150,7 +207,7 @@ def cache_update(models, query, cli_id):
     shutil.rmtree(f"{cache_dir}{cli_id}/{query}/gifs/")
 
 def translate(text):
-    l= conf_parser["DEFAULT"]["language"]
+    l = conf_parser["DEFAULT"]["language"]
     translator = pipeline("translation", model = f"Helsinki-NLP/opus-mt-{l}-en")
     return translator(text)[0]["translation_text"]
 
@@ -344,9 +401,11 @@ def download():
     # Check if the requested mesh file exists
     if os.path.exists(f'{cache_dir}{cli_id}/{query}/meshes/{obj_num}_mesh.obj'):
         # Read the file data
-        file_data = ""
-        with open(f'{cache_dir}{cli_id}/{query}/meshes/{obj_num}_mesh.obj', "rb") as f:
-            file_data = f.read()
+
+        simplify_mesh = simplify_mesh(trimesh.load(f'{cache_dir}{cli_id}/{query}/meshes/{obj_num}_mesh.obj', 50))
+        simplify_mesh.export(f'{cache_dir}{cli_id}/{query}/meshes/{obj_num}_mesh_simplify.obj')
+        with open(f'{cache_dir}{cli_id}/{query}/meshes/{obj_num}_mesh_simplify.obj', "rb") as f:
+           file_data = f.read()
 
         # Create a response with the file data and appropriate headers for downloading
         response = Response(file_data, mimetype="text/plain")
