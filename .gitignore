@@ -1,0 +1,20 @@
+﻿################################################################################
+# Il file gitignore è stato creato automaticamente da Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Assets/Plugins
+/Assets/Resources
+/Assets/Samples
+/Assets/Scenes
+/Assets/TextMesh Pro
+/Assets/VRTemplateAssets
+/Assets/XRI
+/Assets/XR
+/Library
+/Logs
+/obj/Debug
+/Temp
+/Packages
+/UserSettings
+/ProjectSettings/Packages
