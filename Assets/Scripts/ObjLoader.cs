@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+<<<<<<< HEAD
 using System;
 using TMPro;
 using System.Threading.Tasks;
@@ -31,6 +32,29 @@ public static class ObjLoader {
         var triangles = new List<int>();
         var normals = new List<Vector3>();
 
+=======
+
+public static class ObjLoader
+{
+    public static Mesh LoadFromPath(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            Debug.LogError($"File not found: {filePath}");
+            return null;
+        }
+
+        string objData = File.ReadAllText(filePath);
+        return Load(objData);
+    }
+
+    public static Mesh Load(string objData)
+    {
+        var mesh = new Mesh();
+
+        var vertices = new List<Vector3>();
+        var triangles = new List<int>();
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
 
         using (var reader = new StringReader(objData))
         {
@@ -39,6 +63,7 @@ public static class ObjLoader {
             {
                 if (line.StartsWith("v "))
                 {
+<<<<<<< HEAD
                     numDebug++;
                     var vertex = ParseVertex(line);
                     debugText.text = numDebug.ToString();
@@ -48,11 +73,17 @@ public static class ObjLoader {
                     var vertex = ParseVertex(line);
                     normals.Add(vertex);
                 }
+=======
+                    var vertex = ParseVertex(line);
+                    vertices.Add(vertex);
+                }
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
                 else if (line.StartsWith("f "))
                 {
                     var faceIndices = ParseFace(line);
                     triangles.AddRange(faceIndices);
                 }
+<<<<<<< HEAD
                 /*if(numDebug % 250 == 0) {
                     
                 }
@@ -111,6 +142,19 @@ public static class ObjLoader {
     }
     
     
+=======
+            }
+        }
+
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
+        mesh.RecalculateBounds();
+        mesh.RecalculateNormals();
+
+        return mesh;
+    }
+
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
     private static Vector3 ParseVertex(string line)
     {
         var parts = line.Split(' ');

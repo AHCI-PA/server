@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
+<<<<<<< HEAD
 //using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using UnityEngine;
@@ -13,29 +14,60 @@ public static class StaticClassData{
     public static string lastGenerationName;
     
     public static void CreatePrograme(string URL, string cli_id){
+=======
+using UnityEngine;
+public static class StaticClassData
+{
+    public static Program program;
+    public static bool generationState;
+    public static string lastGenerationName;
+
+    public static void CreatePrograme(string URL, string cli_id)
+    {
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
         program = new Program(URL, cli_id);
     }
 }
 
+<<<<<<< HEAD
 public class Program{
+=======
+public class Program
+{
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
 
     private HttpClient program_client;
     private string program_URL;
     private string cli_id;
 
+<<<<<<< HEAD
     public Program(string URL, string cli_id){
+=======
+    public Program(string URL, string cli_id)
+    {
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
         this.program_client = new HttpClient();
         this.program_URL = URL;
         this.cli_id = cli_id;
     }
     // This method is useful only to get if the server is up, does a get to the root
+<<<<<<< HEAD
         public async Task<string> GetRequestAsync(){
+=======
+    public async Task<string> GetRequestAsync()
+    {
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
         HttpResponseMessage response = await this.program_client.GetAsync(this.program_URL);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }
 
+<<<<<<< HEAD
     public async Task<string> PostRequestAsync(){
+=======
+    public async Task<string> PostRequestAsync()
+    {
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
         Debug.Log("Ciao");
         string postURL = $"{this.program_URL}/auth?cli_id={this.cli_id}";
         HttpResponseMessage response = await this.program_client.PostAsync(postURL, null);
@@ -43,6 +75,7 @@ public class Program{
         return await response.Content.ReadAsStringAsync();
     }
 
+<<<<<<< HEAD
     public async Task UnzipGetRequestAsync(string query) {
         StaticClassData.lastGenerationName = query;
         string zipFilePath = $"{Application.persistentDataPath}/download/{query}/";
@@ -77,6 +110,49 @@ public class Program{
         }
 }
     
+=======
+    public async Task UnzipGetRequestAsync(string query)
+    {
+        StaticClassData.lastGenerationName = query;
+        string zipFilePath = $"{Application.persistentDataPath}/download/{query}/";
+        if (!Directory.Exists(zipFilePath))
+        {
+            Directory.CreateDirectory(zipFilePath);
+        }
+        string getURL = $"{this.program_URL}/query?cli_id={this.cli_id}&query={query}&tentatives=4"; ;
+        HttpResponseMessage responseMessage = await this.program_client.GetAsync(getURL);
+        responseMessage.EnsureSuccessStatusCode();
+        using (Stream zipStream = await responseMessage.Content.ReadAsStreamAsync())
+        using (ZipArchive zip = new ZipArchive(zipStream))
+        {
+            zip.ExtractToDirectory(zipFilePath);
+        }
+        Console.WriteLine("UNZIP-DONE");
+    }
+
+    public async Task SaveOBJGetRequestAsync(int obj_num)
+    {
+        // Ensure the final path includes "object.obj"
+
+        string objFilePath = $"{Application.persistentDataPath}/download/{StaticClassData.lastGenerationName}/";
+        string downloadUrl = $"{this.program_URL}/download?cli_id={this.cli_id}&object={obj_num}&query={StaticClassData.lastGenerationName}";
+        if (!Directory.Exists(objFilePath))
+        {
+            Directory.CreateDirectory(objFilePath);
+        }
+        objFilePath = $"{objFilePath}model.obj";
+
+        HttpResponseMessage responseMessage = await this.program_client.GetAsync(downloadUrl);
+        responseMessage.EnsureSuccessStatusCode();
+
+        using (Stream objStream = await responseMessage.Content.ReadAsStreamAsync())
+        using (FileStream fileStream = new FileStream(objFilePath, FileMode.CreateNew, FileAccess.Write))
+        {
+            await objStream.CopyToAsync(fileStream);
+        }
+    }
+
+>>>>>>> 3e21fa81926153c7bd4ba55b45b8c7c422c2d527
 
     /*static async Task Main(string[] args){
         string url = "https://7034-194-119-214-242.ngrok-free.app/";
